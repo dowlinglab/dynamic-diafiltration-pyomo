@@ -13,6 +13,7 @@ from matplotlib.lines import Line2D
 import idaes
 import time
 import copy
+import os
 import json
 from sklearn.metrics import r2_score
 
@@ -1218,3 +1219,18 @@ def calc_FIM(data_stru, mode, theta=None, step=1e-8, formula='backward', B_form=
 
     print(doe_stru)
     return doe_stru
+
+def correlation_from_covariance(covariance):
+    ''' 
+    This function calculate correlation matrix from covariance matrix.
+    '''    
+    v = np.sqrt(np.diag(covariance))
+    outer_v = np.outer(v, v)
+    correlation = covariance / outer_v
+    correlation[covariance == 0] = 0
+    print(correlation)
+    return correlation
+
+def store_json(file_name,structure):
+    with open(file_name, "w") as json_file:
+        json.dump(structure, json_file)
