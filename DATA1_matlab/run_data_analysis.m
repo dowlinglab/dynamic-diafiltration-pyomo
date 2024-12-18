@@ -6,8 +6,8 @@ clear all
 % 511.12 diafiltration w/ conductivity measurements
 % 511.11 diafiltration w/o conductivity measurements
 
-dat = [501.12];
-% dat = [501.1,501.11,511.12,511.11];
+% dat = [501.12];
+dat = [501.1,501.11,511.12,511.11];
 
 Lp_w = 3.66; % NF90.5 pure water permeability
 mod = '201cvmv'; % default for DATA
