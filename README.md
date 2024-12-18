@@ -37,7 +37,7 @@ conda activate dynamic-diafiltration
    Original MATLAB scripts and supporting functions for analyzing diafiltration and filtration experiments, performing parameter estimation, and generating heatmaps for Model-Based Design of Experiments (MBDoE) in DATA1 and DATA-MBDoE papers. For usage details, please refer to the README file in this folder.
    
 3. **`utility.py`**  
-   Library of Python functions for:
+   Core library of Python functions for:
    - Loading and storing nested MATLAB `.mat` data.
    - Performing parameter estimation and providing information for model ranking.
    - Performing Fisher Information Matrix (FIM) analysis.
@@ -47,12 +47,25 @@ conda activate dynamic-diafiltration
    A Jupyter Notebook demonstrating:
    - Dynamic diafiltration Pyomo modeling.
    - Reproduce DATA1 analysis for NF90 membranes.
-   - [WIP] Loops for regenerate contours in DATA1 paper.
+   - [WIP] Generating contours for sensitivity analysis/DoE in the DATA1 paper.
   
 5. **`DATA2_model_demo.ipynb`**  
    A Jupyter Notebook demonstrating:
    - Dynamic diafiltration Pyomo modeling.
    - Analysis of NF270 membranes for DATA2 paper.
+
+6. **`DATA2_visualization.ipynb`**  
+   Notebook for generating publication-ready plots and visualizations for the DATA2 paper.
+
+7. **`run_cross_verification.py`**  
+   Python script for cross-verifying empirical solute permeability coefficient (`B`) models with additional datasets, and store visualizations.
+
+8. **`run_DATA2_model_variations.py`**  
+   Script for exploring model variations (e.g., including startup dynamics and/or time correction) and performing Fisher Information Matrix (FIM) calculations to evaluate information gain for the DATA2 paper.
+
+9. **`run_pre_B_dependence.py`**  
+   Preliminarily investigates the dependence of solute permeability coefficient (`B`) on interface concentrations. Outputs visualizations and insights for modeling and optimization.
+   
 ---
 
 ## Key Features
