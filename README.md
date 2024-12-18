@@ -11,11 +11,17 @@ This repository contains a Pyomo-based dynamic diafiltration model used to analy
 This project is developed with the following dependencies:
 - **Python**: Version 3.11.6
 - **Pyomo**: Version 6.8.0
+- **MATLAB**: Implemented with R2020a and R2022a (for additional MATLAB analysis in `DATA1-matlab`)
 
 ### Suggested Conda Configuration
-Create an isolated environment with the following command:
+
+To set up the Python environment, recommend the following Conda configuration:
 ```bash
 conda create -n dynamic-diafiltration -c anaconda -c conda-forge -c IDAES-PSE python=3.11 numpy matplotlib pandas scipy idaes-pse
+```
+Activate the environment:
+```bash
+conda activate dynamic-diafiltration
 ```
 
 ---
@@ -23,21 +29,30 @@ conda create -n dynamic-diafiltration -c anaconda -c conda-forge -c IDAES-PSE py
 ## Repository Organization
 
 ### Root Directory
-1. **`utility.py`**  
-   Library of functions for:
+
+1. **`data_library/`**  
+   Contains formatted experimental data (nested `.mat` files) used for the model and analysis.
+
+2. **`DATA1-matlab/`**
+   Original MATLAB scripts and supporting functions for analyzing diafiltration and filtration experiments, performing parameter estimation, and generating heatmaps for Model-Based Design of Experiments (MBDoE) in DATA1 and DATA-MBDoE papers. For usage details, please refer to the README file in this folder.
+   
+3. **`utility.py`**  
+   Library of Python functions for:
    - Loading and storing nested MATLAB `.mat` data.
    - Performing parameter estimation and providing information for model ranking.
    - Performing Fisher Information Matrix (FIM) analysis.
    - Visualization of experimental and simulation results.
 
-2. **`DATA_model_demo.ipynb`**  
+4. **`DATA1_model_demo.ipynb`**  
    A Jupyter Notebook demonstrating:
    - Dynamic diafiltration Pyomo modeling.
-   - Analysis of NF90 and NF270 membranes.
-
-3. **`data/`**  
-   Contains formatted experimental data (nested `.mat` files) used for the model and analysis.
-
+   - Reproduce DATA1 analysis for NF90 membranes.
+   - [WIP] Loops for regenerate contours in DATA1 paper.
+  
+5. **`DATA2_model_demo.ipynb`**  
+   A Jupyter Notebook demonstrating:
+   - Dynamic diafiltration Pyomo modeling.
+   - Analysis of NF270 membranes for DATA2 paper.
 ---
 
 ## Key Features
@@ -55,7 +70,7 @@ conda create -n dynamic-diafiltration -c anaconda -c conda-forge -c IDAES-PSE py
 ### Running the Model
 1. **Prepare Data**: Place experimental `.mat` files in the `data/` directory.
 2. **Configure Parameters**: Modify initial conditions and parameters in `utility.py` or the notebook as needed.
-3. **Run the Notebook**: Execute `DATA_model_demo.ipynb` to:
+3. **Run the Notebook**: Execute `DATA2_model_demo.ipynb` to:
    - Load data.
    - Run the Pyomo model.
    - Visualize results.
@@ -76,11 +91,17 @@ Use `calc_FIM` to optimize experimental design:
 
 This repository accompanies the studies: 
 
+**DATA2**
+
 *"Characterizing Transport Properties of Surface-Charged Nanofiltration Membranes via Model-based Data Analytics"*, authored by [Xinhong Liu et al.](mailto:wphillip@nd.edu), [William A. Phillip](mailto:wphillip@nd.edu), and [Alexander W. Dowling](mailto:adowling@nd.edu).
 
+**DATA-MBDoE**
+
 *"Membrane Characterization with Model-Based Design of Experiments"*, authored by [Xinhong Liu et al.](mailto:wphillip@nd.edu), [William A. Phillip](mailto:wphillip@nd.edu), and [Alexander W. Dowling](mailto:adowling@nd.edu).
+
+**DATA1**
 
 *"DATA: Diafiltration Apparatus for high-Throughput Analysis"*, authored by [Jonathan A Ouimet](mailto:ouimetja@gmail.com), [Xinhong Liu et al.](mailto:wphillip@nd.edu), [William A. Phillip](mailto:wphillip@nd.edu), and [Alexander W. Dowling](mailto:adowling@nd.edu).
 
 
-For details on the methodology, see the manuscript or contact the corresponding authors.
+For details on the methodology, refer to the manuscript or contact the corresponding authors.
