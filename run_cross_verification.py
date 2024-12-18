@@ -6,7 +6,7 @@ University of Notre Dame
 
 from utility import *
 
-def solve_model_B_fix(data_stru, mode, theta=None, sim_opt=False, B_form=1, LOUD=False):
+def solve_model_B_fix(data_stru, mode, theta=None, sim_opt=False, B_form=1, sigma_fixed=True, LOUD=False):
     """
     Solve pyomo model
     
@@ -19,7 +19,8 @@ def solve_model_B_fix(data_stru, mode, theta=None, sim_opt=False, B_form=1, LOUD
                 'single' - constant B
                 'per vial' - discrete B per vial
                 'convection' - convection-diffussion model
-                0, -0.5, 0.5, 1, 2, 3 - order of dipendence on concentration 
+                0, -0.5, 0.5, 1, 2, 3 - order of dipendence on concentration
+        sigma_fixed: boolean, if fix sigma value
         LOUD: boolean, if print out parameter results and store model predictions
     
     Returns:
@@ -159,7 +160,8 @@ def solve_model_B_fix(data_stru, mode, theta=None, sim_opt=False, B_form=1, LOUD
     instance.beta_1.fixed=True
     if B_form>1:
         instance.beta_2.fixed=True
-
+    if sigma_fixed:
+        instance.sigma.fixed=True
     if sim_opt:
         instance.Obj_1 = Objective(expr = 1)
         instance.Obj = Expression(rule=obj_rule)
@@ -171,24 +173,11 @@ def solve_model_B_fix(data_stru, mode, theta=None, sim_opt=False, B_form=1, LOUD
         #Simulate the model using scipy
         sim = Simulator(instance, package='casadi') 
         tsim, profiles = sim.simulate(numpoints=300, integrator='idas')
-        #Discretize the model using Orthogonal Collocation
+        #Discretize the model using finite difference
         TransformationFactory('dae.finite_difference').apply_to(instance, nfe=300, scheme='BACKWARD')
         #Initialize the discretized model using the simulator profiles
         sim.initialize_model()
     except:
-        try:
-            #Relax constraint and try intilization again
-            instance.ode_mF.deactivate()
-            #Simulate the model using scipy
-            sim = Simulator(instance, package='casadi') 
-            tsim, profiles = sim.simulate(numpoints=300, integrator='idas')
-            #Discretize the model using Orthogonal Collocation
-            TransformationFactory('dae.finite_difference').apply_to(instance, nfe=300, scheme='BACKWARD')
-            #Initialize the discretized model using the simulator profiles
-            sim.initialize_model()
-            instance.ode_mF.activate()
-        except:
-            TransformationFactory('dae.finite_difference').apply_to(instance, nfe=300, scheme='BACKWARD')
         TransformationFactory('dae.finite_difference').apply_to(instance, nfe=300, scheme='BACKWARD')
 
     solver = SolverFactory('ipopt')
@@ -240,18 +229,12 @@ def solve_model_B_fix(data_stru, mode, theta=None, sim_opt=False, B_form=1, LOUD
     return fit_stru, sim_stru, sim_inter
 
 
-# Standard lag diafiltration experiment
-mode = 'Lag'
+# Parameter results from standard lag diafiltration experiment
 # A.0
-theta = {'Lp': 11,
-  'beta_c': 15,
-  'beta_0': 1,
-  'beta_1': 0.01,
-  'sigma': 1.0,
-  'S0': 0}
-data_stru = loadmat('data_library/data_stru-dataset270511.123.mat')['data_stru']
-fit_stru_base, sim_stru, sim_inter = solve_model(data_stru, mode, theta, sim_opt=False, B_form=1)
-plot_sim_comparison(data_stru,sim_stru,stirc_mass=False,plot_pred=True,lg=False,LOUD=True)
+fit_stru_base = {'parameters': {'Lp': 11.113241068147595, 
+            'beta_0': 1.0649294788103598, 
+            'beta_1': 0.015171421224603474, 
+            'sigma': 1.0}}
 
 # Start cross verification
 mode = 'DATA'
@@ -272,12 +255,12 @@ plot_sim_comparison(data_stru,sim_stru,stirc_mass=False,plot_pred=True,lg=False,
 
 # B.2
 data_stru = loadmat('data_library/data_stru-dataset270511.321.mat')['data_stru']
-fit_stru, sim_stru, sim_inter = solve_model_B_fix(data_stru, mode, theta=fit_stru_base['parameters'], sim_opt=False, B_form=1)
+fit_stru, sim_stru, sim_inter = solve_model_B_fix(data_stru, mode, theta=fit_stru_base['parameters'], sim_opt=False, B_form=1, sigma_fixed=False)
 plot_sim_comparison(data_stru,sim_stru,stirc_mass=False,plot_pred=True,lg=False,LOUD=True)
 
 # C.1
 data_stru = loadmat('data_library/data_stru-dataset270511.421.mat')['data_stru']
-fit_stru, sim_stru, sim_inter = solve_model_B_fix(data_stru, mode, theta=fit_stru_base['parameters'], sim_opt=False, B_form=1)
+fit_stru, sim_stru, sim_inter = solve_model_B_fix(data_stru, mode, theta=fit_stru_base['parameters'], sim_opt=False, B_form=1, sigma_fixed=False)
 plot_sim_comparison(data_stru,sim_stru,stirc_mass=False,plot_pred=True,lg=False,LOUD=True)
 
 # C.2
@@ -297,7 +280,7 @@ plot_sim_comparison(data_stru,sim_stru,stirc_mass=False,plot_pred=True,lg=False,
 
 # E.1
 data_stru = loadmat('data_library/data_stru-dataset270511.721.mat')['data_stru']
-fit_stru, sim_stru, sim_inter = solve_model_B_fix(data_stru, mode, theta=fit_stru_base['parameters'], sim_opt=False, B_form=1)
+fit_stru, sim_stru, sim_inter = solve_model_B_fix(data_stru, mode, theta=fit_stru_base['parameters'], sim_opt=False, B_form=1, sigma_fixed=False)
 plot_sim_comparison(data_stru,sim_stru,stirc_mass=False,plot_pred=True,lg=False,LOUD=True)
 
 # E.2

@@ -121,7 +121,7 @@ def plot_sim_comparison(data_stru,sim_stru,stirc_mass=False,plot_pred=True,lg=Fa
     plt.yticks(fontsize=12)
     plt.tick_params(direction="in")
     plt.ylim(bottom=0)
-    plt.show()
+    #plt.show()
     
     if LOUD:
         fname = 'figures/mass-dat'+str(data_stru['dataset'])
@@ -166,7 +166,7 @@ def plot_sim_comparison(data_stru,sim_stru,stirc_mass=False,plot_pred=True,lg=Fa
     plt.yticks(fontsize=12)
     plt.tick_params(direction="in",top=True, right=True)
     plt.ylim(bottom=0)
-    plt.show()
+    #plt.show()
     
     if LOUD:
         fname = 'figures/concentration-dat'+str(data_stru['dataset'])
@@ -206,7 +206,7 @@ def plot_sim_comparison(data_stru,sim_stru,stirc_mass=False,plot_pred=True,lg=Fa
         plt.ylim(bottom=0,top=ytop+0.5)
         if lg:
             plt.legend(fontsize=12.5,loc='best')#bbox_to_anchor=(1.02, 0.3),borderaxespad=0,ncol=3)
-        plt.show()
+        #plt.show()
         if LOUD:
             fname = 'figures/stirc_mass-dat'+str(data_stru['dataset'])
             fig.savefig(fname+'.png',dpi=300,bbox_inches='tight')
@@ -972,7 +972,7 @@ def solve_model(data_stru, mode, theta=None, sim_opt=False, B_form='single', LOU
         #Simulate the model using scipy
         sim = Simulator(instance, package='casadi') 
         tsim, profiles = sim.simulate(numpoints=300, integrator='idas')
-        #Discretize the model using Orthogonal Collocation
+        #Discretize the model using finite_difference
         TransformationFactory('dae.finite_difference').apply_to(instance, nfe=300, scheme='BACKWARD')
         #Initialize the discretized model using the simulator profiles
         sim.initialize_model()
@@ -1185,6 +1185,7 @@ def calc_FIM(data_stru, mode, theta=None, step=1e-8, formula='backward', B_form=
     else:
         doe_stru['Jac'] = Jac
     FIM = doe_stru['Jac'] @ np.linalg.inv(cov_pred) @ doe_stru['Jac'].T
+    doe_stru['Jac'] = doe_stru['Jac'].tolist()
     doe_stru['FIM'] = FIM.tolist()
 
     # Compute eigenvalues of FIM

@@ -84,10 +84,9 @@ plt.tick_params(direction="in")
 plt.xlim(left=0)
 plt.ylim(bottom=0)
 plt.legend(fontsize=10,loc='best')
-plt.show()
 
 fname = 'Js_Jw_cin'
-fig.savefig(fname+'.png',dpi=300,bbox_inches='tight')
+fig.savefig('figures/'+fname+'.png',dpi=300,bbox_inches='tight')
 
 cmap1 = plt.get_cmap("tab10")
 cmap2 = plt.get_cmap("tab20")
@@ -114,7 +113,6 @@ plt.yticks(fontsize=12)
 plt.tick_params(direction="in")
 plt.xlim(left=0)
 plt.ylim(bottom=0)
-plt.show()
 
 fname = 'Bpervial'
-fig.savefig(fname+'.png',dpi=300,bbox_inches='tight')
+fig.savefig('figures/'+fname+'.png',dpi=300,bbox_inches='tight')
