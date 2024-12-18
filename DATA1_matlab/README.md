@@ -1,6 +1,6 @@
 # DATA1-matlab
 
-This folder contains MATLAB scripts and supporting functions for analyzing diafiltration and filtration experiments, performing parameter estimation, and generating heatmaps for Model Based Design of Experiments (MBDoE).
+This folder contains MATLAB scripts and supporting functions for analyzing diafiltration and filtration experiments, performing parameter estimation, and generating heatmaps for Model-Based Design of Experiments (MBDoE).
 
 ## Dependencies
 
