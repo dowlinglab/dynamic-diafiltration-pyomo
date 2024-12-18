@@ -93,15 +93,15 @@ This repository accompanies the studies:
 
 **DATA2**
 
-*"Characterizing Transport Properties of Surface-Charged Nanofiltration Membranes via Model-based Data Analytics"*, authored by [Xinhong Liu et al.](mailto:wphillip@nd.edu), [William A. Phillip](mailto:wphillip@nd.edu), and [Alexander W. Dowling](mailto:adowling@nd.edu).
+*"Characterizing Transport Properties of Surface-Charged Nanofiltration Membranes via Model-based Data Analytics"*, authored by [Xinhong Liu et al.](mailto:xliu27@nd.edu), [William A. Phillip](mailto:wphillip@nd.edu), and [Alexander W. Dowling](mailto:adowling@nd.edu).
 
 **DATA-MBDoE**
 
-*"Membrane Characterization with Model-Based Design of Experiments"*, authored by [Xinhong Liu et al.](mailto:wphillip@nd.edu), [William A. Phillip](mailto:wphillip@nd.edu), and [Alexander W. Dowling](mailto:adowling@nd.edu).
+*"Membrane Characterization with Model-Based Design of Experiments"*, authored by [Xinhong Liu et al.](mailto:xliu27@nd.edu), [William A. Phillip](mailto:wphillip@nd.edu), and [Alexander W. Dowling](mailto:adowling@nd.edu).
 
 **DATA1**
 
-*"DATA: Diafiltration Apparatus for high-Throughput Analysis"*, authored by [Jonathan A Ouimet](mailto:ouimetja@gmail.com), [Xinhong Liu et al.](mailto:wphillip@nd.edu), [William A. Phillip](mailto:wphillip@nd.edu), and [Alexander W. Dowling](mailto:adowling@nd.edu).
+*"DATA: Diafiltration Apparatus for high-Throughput Analysis"*, authored by [Jonathan A Ouimet](mailto:ouimetja@gmail.com), [Xinhong Liu et al.](mailto:xliu27@nd.edu), [William A. Phillip](mailto:wphillip@nd.edu), and [Alexander W. Dowling](mailto:adowling@nd.edu).
 
 
 For details on the methodology, refer to the manuscript or contact the corresponding authors.
