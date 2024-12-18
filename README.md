@@ -17,7 +17,7 @@ This project is developed with the following dependencies:
 
 To set up the Python environment, recommend the following Conda configuration:
 ```bash
-conda create -n dynamic-diafiltration -c anaconda -c conda-forge -c IDAES-PSE python=3.11 numpy matplotlib pandas scipy idaes-pse
+conda create -n dynamic-diafiltration -c anaconda -c conda-forge -c IDAES-PSE python=3.11 numpy matplotlib pandas scipy idaes-pse scikit-learn
 ```
 Activate the environment:
 ```bash
