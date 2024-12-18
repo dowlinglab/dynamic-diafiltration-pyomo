@@ -124,7 +124,7 @@ def plot_sim_comparison(data_stru,sim_stru,stirc_mass=False,plot_pred=True,lg=Fa
     plt.show()
     
     if LOUD:
-        fname = 'mass-dat'+str(data_stru['dataset'])
+        fname = 'figures/mass-dat'+str(data_stru['dataset'])
         fig.savefig(fname+'.png',dpi=300,bbox_inches='tight')
 
     # plot concentration data/prediction comparison
@@ -169,7 +169,7 @@ def plot_sim_comparison(data_stru,sim_stru,stirc_mass=False,plot_pred=True,lg=Fa
     plt.show()
     
     if LOUD:
-        fname = 'concentration-dat'+str(data_stru['dataset'])
+        fname = 'figures/concentration-dat'+str(data_stru['dataset'])
         fig.savefig(fname+'.png',dpi=300,bbox_inches='tight')
         
     # plot mass of stirred cell
@@ -208,7 +208,7 @@ def plot_sim_comparison(data_stru,sim_stru,stirc_mass=False,plot_pred=True,lg=Fa
             plt.legend(fontsize=12.5,loc='best')#bbox_to_anchor=(1.02, 0.3),borderaxespad=0,ncol=3)
         plt.show()
         if LOUD:
-            fname = 'stirc_mass-dat'+str(data_stru['dataset'])
+            fname = 'figures/stirc_mass-dat'+str(data_stru['dataset'])
             fig.savefig(fname+'.png',dpi=300,bbox_inches='tight')
 
 
@@ -977,19 +977,6 @@ def solve_model(data_stru, mode, theta=None, sim_opt=False, B_form='single', LOU
         #Initialize the discretized model using the simulator profiles
         sim.initialize_model()
     except:
-        try:
-            #Relax constraint and try intilization again
-            instance.ode_mF.deactivate()
-            #Simulate the model using scipy
-            sim = Simulator(instance, package='casadi') 
-            tsim, profiles = sim.simulate(numpoints=300, integrator='idas')
-            #Discretize the model using Orthogonal Collocation
-            TransformationFactory('dae.finite_difference').apply_to(instance, nfe=300, scheme='BACKWARD')
-            #Initialize the discretized model using the simulator profiles
-            sim.initialize_model()
-            instance.ode_mF.activate()
-        except:
-            TransformationFactory('dae.finite_difference').apply_to(instance, nfe=300, scheme='BACKWARD')
         TransformationFactory('dae.finite_difference').apply_to(instance, nfe=300, scheme='BACKWARD')
 
     solver = SolverFactory('ipopt')
@@ -1198,22 +1185,22 @@ def calc_FIM(data_stru, mode, theta=None, step=1e-8, formula='backward', B_form=
     else:
         doe_stru['Jac'] = Jac
     FIM = doe_stru['Jac'] @ np.linalg.inv(cov_pred) @ doe_stru['Jac'].T
-    doe_stru['FIM'] = FIM
+    doe_stru['FIM'] = FIM.tolist()
 
     # Compute eigenvalues of FIM
     w, v = np.linalg.eigh(FIM)
-    doe_stru['eig_val'] = w
-    doe_stru['eig_vec'] = v # in columns
+    doe_stru['eig_val'] = w.tolist()
+    doe_stru['eig_vec'] = v.tolist() # in columns
     theta_p_name=nested_dict_keys(theta_p)
     maxind = np.argmax(abs(v), axis=0)
     doe_stru['eig_dir']=[theta_p_name[i] for i in (maxind)]
-    doe_stru['trace'] = np.trace(FIM)
-    doe_stru['det'] = np.linalg.det(FIM)
+    doe_stru['trace'] = np.trace(FIM).tolist()
+    doe_stru['det'] = np.linalg.det(FIM).tolist()
     doe_stru['min_eig'] = min(w)
     doe_stru['cond'] = max(w) / min(w)
     try:
-        doe_stru['V'] = np.linalg.inv(FIM)
-        doe_stru['std'] = np.sqrt(np.diag(doe_stru['V']))
+        doe_stru['V'] = np.linalg.inv(FIM).tolist()
+        doe_stru['std'] = np.sqrt(np.diag(doe_stru['V'])).tolist()
     except:
         print('No inverse of FIM')
 
