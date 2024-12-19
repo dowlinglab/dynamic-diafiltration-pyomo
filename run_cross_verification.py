@@ -28,6 +28,15 @@ def solve_model_B_fix(data_stru, mode, theta=None, sim_opt=False, B_form=1, sigm
         sim_stru: dict, model predictions
         sim_inter: dict, model predictions for experimental measurements 
     """
+
+    print("\n\n###################################################################")
+    print("Creating and solving the Pyomo model with the following settings: ")
+    print("mode =", mode)
+    print("theta =",theta)
+    print("sim_opt =", sim_opt)
+    print("B_form =", B_form)
+    print("sigma_fixed =",sigma_fixed)
+    print(" ")
     
     # interpolation function
     def interpolation(m,var,n_vial,t):
@@ -225,6 +234,8 @@ def solve_model_B_fix(data_stru, mode, theta=None, sim_opt=False, B_form=1, sigm
         
         #validate the csv file by importing it
         #print(pd.read_csv(fname+".csv"))
+
+    print("###################################################################")
 
     return fit_stru, sim_stru, sim_inter
 

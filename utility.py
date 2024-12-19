@@ -833,13 +833,14 @@ def solve_model(data_stru, mode, theta=None, sim_opt=False, B_form='single', LOU
         sim_inter: dict, model predictions for experimental measurements 
     """
 
-    print("\n\n ##############################")
-    print("""Creating and solving the Pyomo model with the following settings: """)
+    print("\n\n###################################################################")
+    print("Creating and solving the Pyomo model with the following settings: ")
     print("mode =", mode)
     print("theta =",theta)
     print("sim_opt =", sim_opt)
     print("B_form =", B_form)
     print(" ")
+    
     # interpolation function
     def interpolation(m,var,n_vial,t):
         """
@@ -1054,7 +1055,7 @@ def solve_model(data_stru, mode, theta=None, sim_opt=False, B_form='single', LOU
         #print(pd.read_csv(fname+".csv"))
 
     # Finish print statement
-    print("##############################")
+    print("###################################################################")
 
     return fit_stru, sim_stru, sim_inter
 
