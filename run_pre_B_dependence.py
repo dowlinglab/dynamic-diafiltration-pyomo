@@ -9,9 +9,18 @@ from utility import *
 mode = 'DATA'
 Allsim_stru=dict()
 
+def solve_model_per_vial(data_file):
+    print("\n")
+    data_stru = loadmat(data_file)['data_stru']
+    fit_stru, sim_stru, sim_inter = solve_model(data_stru, mode, sim_opt=False, B_form='pervial')
+    return sim_stru
+
 data_stru = loadmat('data_library/data_stru-dataset270511.12.mat')['data_stru']
 fit_stru, sim_stru, sim_inter = solve_model(data_stru, mode, sim_opt=False, B_form='pervial')
 Allsim_stru['A.0'] = sim_stru
+
+# TODO: replace all of these blocks of code with a single line each
+# Allsim_stru['A.0'] = solve_model_per_vial('data_library/data_stru-dataset270511.12.mat')
 
 data_stru = loadmat('data_library/data_stru-dataset270611.12.mat')['data_stru']
 fit_stru, sim_stru, sim_inter = solve_model(data_stru, mode, sim_opt=False, B_form='pervial')
