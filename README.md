@@ -23,7 +23,10 @@ Activate the environment:
 ```bash
 conda activate dynamic-diafiltration
 ```
-
+In case CasADi is not installed (needed for model initialization)
+```bash
+pip install casadi
+```
 ---
 
 ## Repository Organization
