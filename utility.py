@@ -976,25 +976,46 @@ def solve_model(data_stru, mode, theta=None, sim_opt=False, B_form='single', LOU
         TransformationFactory('dae.finite_difference').apply_to(instance, nfe=300, scheme='BACKWARD')
         #Initialize the discretized model using the simulator profiles
         sim.initialize_model()
-    except:
+    except Exception as e:
+        print(f"Initialization failed: {e}. Applying discretization without initialization.")
         TransformationFactory('dae.finite_difference').apply_to(instance, nfe=300, scheme='BACKWARD')
 
     solver = SolverFactory('ipopt')
     solver.options["linear_solver"] = "ma97"
-
-    results = solver.solve(instance,tee=True)
-    assert results.solver.termination_condition == TerminationCondition.optimal, "Optimization fail"
-    results.write()
+    solver.options["max_iter"] = 3000
     #solver.options["halt_on_ampl_error"] = "yes" # option 1
     #solver.options["print_level"] = 1 # option 2
-    #solver.solve(instance,tee=True).write()
-    #instance.display()
+    try:
+        results = solver.solve(instance,tee=True)
+        if results.solver.termination_condition == TerminationCondition.optimal:
+            results.write()
+        else:
+            print(f"Solver termination: {results.solver.termination_condition}, resolving...")
+            results = solver.solve(instance,tee=True)
+            assert results.solver.termination_condition == TerminationCondition.optimal, (
+                    f"Solver failed: Non-optimal termination condition "
+                    f"{results.solver.termination_condition}. ")
+    except:
+        print("Retrying with adjusted solver settings...")
+        solver.options["linear_solver"] = "ma57"
+        solver.options['max_iter']=5000       
+        results = solver.solve(instance,tee=True)
+        assert results.solver.termination_condition == TerminationCondition.optimal, (
+                f"Solver failed again: Non-optimal termination condition "
+                f"{results.solver.termination_condition}. "
+                "Try alternative initialization or further debugging.")
 
-    if mode !='DATA':
-        fit_stru, sim_stru=save_model(instance, LO=True, B_form=B_form, LOUD=True)
+    # Process results if optimal
+    if results.solver.termination_condition == TerminationCondition.optimal:
+        if mode !='DATA':
+            fit_stru, sim_stru=save_model(instance, LO=True, B_form=B_form, LOUD=True)
+        else:
+            fit_stru, sim_stru=save_model(instance, LO=False, B_form=B_form, LOUD=True)
+        sim_inter = inter_model(data_stru, sim_stru, fit_stru)
     else:
-        fit_stru, sim_stru=save_model(instance, LO=False, B_form=B_form, LOUD=True)
-    sim_inter = inter_model(data_stru, sim_stru, fit_stru)
+        print("Non-optimal solution after retries. Check initialization or parameter settings.")
+        fit_stru, sim_stru, sim_inter = None, None, None
+        return fit_stru, sim_stru, sim_inter
 
     if LOUD:
         time = []
