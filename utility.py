@@ -267,7 +267,9 @@ def save_model(m, LO=True, B_form='single', LOUD=False):
     fit_stru['obj_cr'] = value(m.obj_cr)
     fit_stru['Obj_tru'] = value(m.obj_tru)
     fit_stru['obj_cr_tru'] = value(m.obj_cr_tru)
-    
+    fit_stru['res_std'] = {'res_m': [value(res) for res in m.res_m],
+                 'res_cp': [value(res) for res in m.res_cp],
+                 'res_cf': [value(res) for res in m.res_cf]}   
         
     if LOUD:
         # print parameters
@@ -282,9 +284,9 @@ def save_model(m, LO=True, B_form='single', LOUD=False):
                 print('H = ',value(m.beta_1))
         else:
             if B_form > 2:
-                print('B = Jw*[',value(m.beta_0),'+',value(m.beta_1),'* c_in ^',B_form-2,'+',value(m.beta_2),'* c_in ^',B_form-1,'+',value(m.beta_3),'* c_in ^',B_form + ']')
+                print('B = Jw*[',value(m.beta_0),'+',value(m.beta_1),'* c_in ^',B_form-2,'+',value(m.beta_2),'* c_in ^',B_form-1,'+',value(m.beta_3),'* c_in ^',B_form, ']')
             elif B_form > 1:
-                print('B = Jw*[',value(m.beta_0),'+',value(m.beta_1),'* c_in ^',B_form-1,'+',value(m.beta_2),'* c_in ^',B_form,+']')
+                print('B = Jw*[',value(m.beta_0),'+',value(m.beta_1),'* c_in ^',B_form-1,'+',value(m.beta_2),'* c_in ^',B_form,']')
             elif B_form == 0:
                 print('B = Jw*[',value(m.beta_0), ']')
             else:
@@ -868,6 +870,10 @@ def solve_model(data_stru, mode, theta=None, sim_opt=False, B_form='single', LOU
         ob_cp = 0
         ob_cf0 = 0
         ob_cf = 0
+        res_m_assemble = []
+        res_cp_assemble = []
+        res_cf_assemble = []
+        
         collect_vial = data_stru['data_config']['n'] - data_stru['data_config']['n_extra']
         Count_m = 0
         Count_cp = 0
@@ -888,6 +894,7 @@ def solve_model(data_stru, mode, theta=None, sim_opt=False, B_form='single', LOU
             t_meas_scaled = [(t-TI_dict[n_vial])/(TF_dict[n_vial]-TI_dict[n_vial]) for t in t_meas]
             
             mv_pred=[]
+            res_m_=[]
             obj_mi = 0
             ob_mi = 0
             count_m = 0
@@ -896,12 +903,14 @@ def solve_model(data_stru, mode, theta=None, sim_opt=False, B_form='single', LOU
                 mv_pred.append(mv_inter)
                 
                 if not np.isnan(mv_meas[i]):
-                    res_m = mv_pred[i]-mv_meas[i]             
+                    res_m = mv_pred[i]-mv_meas[i]            
                     count_m += 1
-                    obj_mi += (res_m/0.01)**2 # 0.01g error
+                    res_m_.append(res_m/0.01)
+                    obj_mi += (res_m/0.01)**2 # 0.01g error             
                     ob_mi += res_m**2
             if n_vial >= data_stru['data_config']['n_v0']: 
                 Count_m += count_m
+                res_m_assemble.extend(res_m_)
                 obj_m += obj_mi#/count_m/collect_vial
                 ob_m += ob_mi
     
@@ -909,6 +918,7 @@ def solve_model(data_stru, mode, theta=None, sim_opt=False, B_form='single', LOU
             if type(data_stru['data_raw'][n_vial-1]['cV_avg']) != list:
                 if n_vial > data_stru['data_config']['n_extra']:
                     res_cp = m.cV[n_vial,m.tau.last()]-data_stru['data_raw'][n_vial-1]['cV_avg']
+                    res_cp_assemble.append(res_cp/(0.03*data_stru['data_raw'][n_vial-1]['cV_avg']))
                     obj_cp += (res_cp/(0.03*data_stru['data_raw'][n_vial-1]['cV_avg']))**2 # 3% error
                     ob_cp += (res_cp/(data_stru['data_raw'][n_vial-1]['cV_avg']))**2
                     Count_cp = collect_vial
@@ -924,6 +934,7 @@ def solve_model(data_stru, mode, theta=None, sim_opt=False, B_form='single', LOU
                         if not np.isnan(cp_meas[i]):   
                             res_cp = cp_pred[i]-cp_meas[i]
                             count_cp += 1
+                            res_cp_assemble.append(res_cp/(0.03*cp_meas[i]))
                             obj_cpi += (res_cp/(0.03*cp_meas[i]))**2 # 3% error
                             ob_cpi += (res_cp/(cp_meas[i]))**2
                     Count_cp = collect_vial
@@ -942,6 +953,7 @@ def solve_model(data_stru, mode, theta=None, sim_opt=False, B_form='single', LOU
                     if not np.isnan(cf_meas[i]):   
                         res_cf = cf_pred[i]-cf_meas[i]
                         count_cf += 1
+                        res_cf_assemble.append(res_cf/(0.003*cf_meas[i]))
                         obj_cfi += (res_cf/(0.003*cf_meas[i]))**2 # 0.3% error
                         ob_cfi += (res_cf/(cf_meas[i]))**2
                 if n_vial >= data_stru['data_config']['n_v0']:
@@ -958,6 +970,10 @@ def solve_model(data_stru, mode, theta=None, sim_opt=False, B_form='single', LOU
         m.count_cr = Count_cf
         m.count_cr0 = count_cf0
         m.count = Count_m+Count_cp+Count_cf+count_cf0
+        
+        m.res_m = res_m_assemble
+        m.res_cp = res_cp_assemble
+        m.res_cf = res_cf_assemble
         
         m.obj_m = obj_m/Count_m
         m.obj_cv = obj_cp/Count_cp
