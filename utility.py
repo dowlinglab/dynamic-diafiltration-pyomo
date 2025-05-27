@@ -1524,3 +1524,266 @@ def solve_model_B_fix(data_stru, mode, theta=None, sim_opt=False, B_form=1, sigm
     print("###################################################################")
 
     return fit_stru, sim_stru, sim_inter
+
+def plot_permeate_versus_interfacial_concentrations(data_stru,sim_stru,DATA=2,vial_skip=0,lg=False,LOUD=False):
+    '''
+    Plot permeate concentration versus interfacial (feed-side)
+    concentration for the vial measurements/predictions and the
+    permeate predictions for either DATA1 or DATA2 datasets, with
+    the option to compare DATA1 and DATA2 datasets
+    
+    Arguments:
+        data_stru: dict or list of dicts [DATA1,DATA2], experimental data dictionary
+        sim_stru: dict or list of dicts [DATA1,DATA2], simulation results dictionary
+        DATA: 1, 2, or 12 to denote proper workflow
+            1: DATA1 dataset
+            2: DATA2 dataset
+            12: DATA1/DATA2 comparison
+        vial_skip: int, provide if there are more than 10 entries/vials in the dataset
+        lg: boolean, if plot legends
+        LOUD: boolean, if store the figures
+    
+    Actions:
+        create plots and store (optional)
+    '''
+    # TODO: write proper exceptions for arguments
+
+    if DATA == 1:
+        data_stru90 = data_stru
+        sim_stru90 = sim_stru
+    if DATA == 2:
+        data_stru270 = data_stru
+        sim_stru270 = sim_stru
+    if DATA == 12:
+        data_stru90 = data_stru[0]
+        sim_stru90 = sim_stru[0]
+        data_stru270 = data_stru[1]
+        sim_stru270 = sim_stru[1]
+
+    # calculate the mass transfer coefficient
+    # TODO: make this a parameter in the pyomo model
+    nu = 8.927e-3 #[cm^2/s]
+    b = 2.2860 #[cm]
+    v = 350/60 * np.pi * b #[cm/s]
+    D = 1.960e-5 #[cm^2/s]  - K+
+    k = 0.23 * v**0.57 * D**0.67 / (nu**0.24 * b**0.43)
+
+    fig = plt.figure(figsize=(4,4))
+    plt.plot([0,110],[0,110],'k--')
+    plt.xlabel('Interfacial Concentration (mM)',fontsize=14,fontweight='bold')
+    plt.ylabel('Permeate Concentration (mM)',fontsize=14,fontweight='bold')
+    plt.xlim(left=0,right=110)
+    plt.ylim(bottom=0,top=110)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.tick_params(direction="in", right=True)
+
+    if (DATA==1) or (DATA==12):
+        # save a list of feed concentration values
+        cF_exp_90 = {}
+        for vial in range(data_stru90['data_config']['n']):
+            cF_exp_90[vial] = [x for x in data_stru90["data_raw"][vial]['cF_exp'] if str(x)!='nan']
+        cF_avg = []
+        for vial, conc in cF_exp_90.items():
+            cF_avg.append(np.average(conc))
+
+        cIn_sim = []
+
+        for vial in range(data_stru90['data_config']['n']):
+            # calculate simulated water flux per vial
+            vial_dmdt_sim = (sim_stru90[vial]["mV"][-1] - sim_stru90[vial]["mV"][0]) / (sim_stru90[vial]["time"][-1] - sim_stru90[vial]["time"][0])
+            vial_water_flux_sim = (1/4.1)*vial_dmdt_sim # cm3/cm2/s
+            # calculate simulated cIn
+            for value in range(len(sim_stru90[vial]["time"])):
+                cIn_sim.append((sim_stru90[vial]['cF'][value]-sim_stru90[vial]['cH'][value])*np.exp(vial_water_flux_sim/k)+sim_stru90[vial]['cH'][value])
+
+            # calculate exp water flux per vial
+            vial_dmdt_exp = (data_stru90["data_raw"][vial]["mass"][-1] - data_stru90["data_raw"][vial]["mass"][0]) / (data_stru90["data_raw"][vial]["time"][-1] - data_stru90["data_raw"][vial]["time"][0])
+            vial_water_flux_exp = (1/4.1)*vial_dmdt_exp # cm3/cm2/s
+            # calculate exp cIn per vial
+            cIn_exp = (cF_avg[vial]-data_stru90["data_raw"][vial]['cV_avg'])*np.exp(vial_water_flux_exp/k)+data_stru90["data_raw"][vial]['cV_avg']
+            
+            # permeate predictions
+            plt.plot(cIn_sim,sim_stru90[vial]["cH"],'b-',linewidth=1.5)
+
+            # vial measurements, plot at the bulk cIn,exp
+            plt.plot(cIn_exp,data_stru90['data_raw'][vial]['cV_avg'],'cs',markersize=7,alpha=0.6)
+
+            # vial predictions, plot the bulk predicted cV and the same cIn as exp
+            f = interpolate.interp1d(cIn_sim, sim_stru90[vial]['cV'])
+            plt.plot(cIn_exp,f(cIn_exp),'b^',markersize=7, alpha=0.6)
+            
+            cIn_sim = []
+
+        # ghost point for legend
+        plt.plot([],[],'cs',markersize=7,alpha=0.6,label='NF90 Vial (Measurements)')
+        plt.plot([],[],'b^',markersize=7,alpha=0.6,label='NF90 Vial (Predictions)')
+        plt.plot([],[],'b-',linewidth=1.5,label='NF90 Permeate (Predictions)')
+
+    if (DATA == 2) or (DATA==12):
+        # save a list of average vial concentrations
+        cV_exp_values = [0] * vial_skip
+        for vial_dict in data_stru270["data_raw"]:
+            for variable, values in vial_dict.items():
+                if variable == 'cV_avg':
+                    for x in values:
+                        if str(x) != 'nan':
+                            cV_exp_values.append(x)
+
+        for vial in range(data_stru270['data_config']['n']):
+            # skip any entries?
+            if vial >= vial_skip:
+                # plot permeate predictions
+                plt.plot(sim_stru270[vial]["cIn"],sim_stru270[vial]["cH"],'r-',linewidth=1.5)
+
+                # calculate exp water flux per vial
+                vial_dmdt_exp270 = (data_stru270["data_raw"][vial]["mass"][-1] - data_stru270["data_raw"][vial]["mass"][0]) / (data_stru270["data_raw"][vial]["time"][-1] - data_stru270["data_raw"][vial]["time"][0])
+                vial_water_flux_exp270 = (1/4.1)*vial_dmdt_exp270 # cm3/cm2/s
+                # calculate exp cIn per vial uses bulk (average) measurements for retentate and vial
+                # remove nan from cF_exp
+                cF_vals = [x for x in data_stru270["data_raw"][vial]["cF_exp"] if str(x) != 'nan']
+                cIn_exp270 = (np.average(cF_vals)-cV_exp_values[vial])*np.exp(vial_water_flux_exp270/k)+cV_exp_values[vial]
+                cF_vals = []
+
+                # vial measurements, plot at the bulk cIn,exp
+                plt.plot(cIn_exp270, cV_exp_values[vial], 'ms', markersize=7, alpha=0.6)
+
+                # vial predictions, plot the bulk predicted cV and the same cIn as exp
+                f = interpolate.interp1d(sim_stru270[vial]["cIn"], sim_stru270[vial]['cV'])
+                plt.plot(cIn_exp270,f(cIn_exp270),'r^',markersize=7, alpha=0.6)
+
+        # ghost point for legend
+        plt.plot([],[],'ms',markersize=7,alpha=0.6,label='NF270 Vial (Measurements)')
+        plt.plot([],[],'r^',markersize=7,alpha=0.6,label='NF270 Vial (Predictions)')
+        plt.plot([],[],'r-',linewidth=1.5,label='NF270 Permeate (Predictions)')
+
+    if lg:
+        plt.legend(fontsize=12.5,loc='best',bbox_to_anchor=(1.05, 0.75),borderaxespad=0)
+
+    if LOUD:
+        fname = 'figures/perm_int_conc-dat'+str(data_stru['dataset'])
+        fig.savefig(fname+'.png',dpi=300,bbox_inches='tight')
+
+def plot_B_versus_interfacial_concentration(data_stru,sim_stru_per_vial=None,DATA=2,vial_skip=0,lg=False,LOUD=False):
+    '''
+    Plot B (solute permeability) versus interfacial (feed-side)
+    concentration for the vial measurements/predictions for 
+    either DATA1 or DATA2 datasets, with the option to compare
+    DATA1 and DATA2 datasets
+    
+    Arguments:
+        data_stru: dict or list of dicts [DATA1,DATA2], experimental data dictionary
+        sim_stru_per_vial: if DATA2, simulation results dictionary for per vial results
+        DATA: 1, 2, or 12 to denote proper workflow
+            1: DATA1 dataset
+            2: DATA2 dataset
+            12: DATA1/DATA2 comparison
+        vial_skip: int, provide if there are more than 10 entries/vials in the dataset
+        lg: boolean, if plot legends
+        LOUD: boolean, if store the figures
+    
+    Actions:
+        create plots and store (optional)
+    '''
+    # TODO: write proper exceptions for arguments
+
+    if DATA == 1:
+        data_stru90 = data_stru
+    if DATA == 2:
+        data_stru270 = data_stru
+    if DATA == 12:
+        data_stru90 = data_stru[0]
+        data_stru270 = data_stru[1]
+
+    # calculate the mass transfer coefficient
+    # TODO: make this a parameter in the pyomo model
+    nu = 8.927e-3 #[cm^2/s]
+    b = 2.2860 #[cm]
+    v = 350/60 * np.pi * b #[cm/s]
+    D = 1.960e-5 #[cm^2/s]  - K+
+    k = 0.23 * v**0.57 * D**0.67 / (nu**0.24 * b**0.43)
+
+    fig = plt.figure(figsize=(4,4))
+    plt.xlabel('Interfacial Concentration (mM)',fontsize=14,fontweight='bold')
+    plt.ylabel('B ($\mu$m/s)',fontsize=14,fontweight='bold')
+    plt.xlim(left=0,right=110)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.tick_params(direction="in",top=True, right=True)
+
+    if (DATA==1) or (DATA==12):
+        # save a list of feed concentration values
+        cF_exp_90 = {}
+        for vial in range(data_stru90['data_config']['n']):
+            cF_exp_90[vial] = [x for x in data_stru90["data_raw"][vial]['cF_exp'] if str(x)!='nan']
+        cF_avg = []
+        for vial, conc in cF_exp_90.items():
+            cF_avg.append(np.average(conc))
+
+        # simulated
+        B90 = data_stru90['data_config']["B0"]
+
+        # experimental
+        for vial in range(data_stru90['data_config']['n']):
+            # calculate exp water flux per vial
+            vial_dmdt_exp = (data_stru90["data_raw"][vial]["mass"][-1] - data_stru90["data_raw"][vial]["mass"][0]) / (data_stru90["data_raw"][vial]["time"][-1] - data_stru90["data_raw"][vial]["time"][0])
+            vial_water_flux_exp = (1/4.1)*vial_dmdt_exp # cm3/cm2/s
+            # calculate exp cIn per vial
+            cIn_exp = (cF_avg[vial]-data_stru90["data_raw"][vial]['cV_avg'])*np.exp(vial_water_flux_exp/k)+data_stru90["data_raw"][vial]['cV_avg']
+            # calculate exp R = 1-(cp/cin) per vial
+            vial_R_exp = 1 - (data_stru90["data_raw"][vial]['cV_avg'] / cIn_exp)
+            # calculate exp B = Jw((1-R)/R) per vial
+            vial_B90_exp = vial_water_flux_exp * ((1-vial_R_exp)/vial_R_exp) *10000 #um/s
+
+            plt.plot(cIn_exp,vial_B90_exp,'cs',markersize=7, alpha=0.6)
+
+            plt.plot(cIn_exp,B90,'b^',markersize=7)
+
+        # ghost point for legend
+        plt.plot([],[],'cs',markersize=7, alpha=0.6,label='NF90 (Experimental)')
+        plt.plot([],[],'b^',markersize=7,label='NF90 (Predictions)')
+
+    if (DATA == 2) or (DATA==12):
+        # save a list of average vial concentrations
+        cV_exp_values = [0] * vial_skip
+        for vial_dict in data_stru270["data_raw"]:
+            for variable, values in vial_dict.items():
+                if variable == 'cV_avg':
+                    for x in values:
+                        if str(x) != 'nan':
+                            cV_exp_values.append(x)
+
+        for vial in range(data_stru270['data_config']['n']):
+                # skip any entries?
+                if vial >= vial_skip:
+                        # experiental 
+                        # calculate exp water flux per vial
+                        vial_dmdt_exp270 = (data_stru270["data_raw"][vial]["mass"][-1] - data_stru270["data_raw"][vial]["mass"][0]) / (data_stru270["data_raw"][vial]["time"][-1] - data_stru270["data_raw"][vial]["time"][0])
+                        vial_water_flux_exp270 = (1/4.1)*vial_dmdt_exp270 # cm3/cm2/s
+                        # calculate exp cIn per vial uses bulk (average) measurements for retentate and vial
+                        # remove nan from cF_exp
+                        cF_vals = [x for x in data_stru270["data_raw"][vial]["cF_exp"] if str(x) != 'nan']
+                        cIn_exp270 = (np.average(cF_vals)-cV_exp_values[vial])*np.exp(vial_water_flux_exp270/k)+cV_exp_values[vial]
+                        cF_vals = []
+
+                        # calculate exp R = 1-(cp/cin) per vial
+                        vial_R_exp270 = 1 - (cV_exp_values[vial] / cIn_exp270)
+                        # calculate exp B = Jw((1-R)/R) per vial
+                        vial_B_exp270 = vial_water_flux_exp270 * ((1-vial_R_exp270)/vial_R_exp270) *10000 #um/s
+
+                        plt.plot(cIn_exp270,vial_B_exp270,'ms',markersize=7, alpha=0.6)
+
+        # simulated
+        for i in sim_stru_per_vial:
+            plt.plot(np.average(sim_stru_per_vial[i]['cIn']),np.average(sim_stru_per_vial[i]['B']),'r^',markersize=7)
+        
+        # ghost point for legend
+        plt.plot([],[],'ms',markersize=7, alpha=0.6,label='NF270 (Experimental)')
+        plt.plot([],[],'r^',markersize=7,label='NF270 (Predictions, Per Vial)')
+
+    if lg:
+        plt.legend(fontsize=12.5,loc='best',bbox_to_anchor=(1, 0.7))
+
+    if LOUD:
+        fname = 'figures/B_int_conc-dat'+str(data_stru['dataset'])
+        fig.savefig(fname+'.png',dpi=300,bbox_inches='tight')
