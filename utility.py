@@ -22,7 +22,7 @@ from pyomo.dae import *
 import idaes.core.util.scaling as iscale
 
 
-def loadmat(filename):
+def loadmat(filename):# for fun!
     '''
     Read in nested structure(mat file) generated from MATLAB and output dictionaries.
 
