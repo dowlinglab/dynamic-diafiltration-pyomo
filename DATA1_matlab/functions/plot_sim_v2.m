@@ -14,16 +14,17 @@ function plot_sim_v2(data_stru, model_stru, sim_stru, opts)
 
 % Plot mass data/prediction comparison
 
-% If opts is not provided, initialize with empty struct
+% If opts is not provided, initialize with empty struct; incase opts is not
+% user-defined
 if nargin < 4
     opts = struct();
 end
 
 % Set default behavior for saving, showing, and layout
-if ~isfield(opts, 'do_save'), opts.do_save = true; end            % Save plots to file?
-if ~isfield(opts, 'do_show'), opts.do_show = true; end            % Show figures?
-if ~isfield(opts, 'subplot_mode'), opts.subplot_mode = false; end % Use subplot layout?
-if ~isfield(opts, 'fig_id_mass'), opts.fig_id_mass = figure; end  % Mass plot figure handle
+if ~isfield(opts, 'do_save'), opts.do_save = true; end              % Save plots to file?
+if ~isfield(opts, 'do_show'), opts.do_show = true; end              % Show figures?
+if ~isfield(opts, 'subplot_mode'), opts.subplot_mode = false; end   % Use subplot layout?
+if ~isfield(opts, 'fig_id_mass'), opts.fig_id_mass = figure; end    % Mass plot figure handle
 
 % Compute delay from experiment start
 t_delay = data_stru.data_raw(1).time(1);
