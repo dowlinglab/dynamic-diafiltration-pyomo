@@ -20,9 +20,61 @@ import os
 import json
 from sklearn.metrics import r2_score
 
+# TODO: Replace these imports with only what is needed. For example,
+# from pyomo.environ import ConcreteModel, Var, Param, Constraint, RangeSet, NonNegativeReals
 from pyomo.environ import *
+# TODO: Replace these imports with only what is needed. For example,
+# from pyomo.dae import ContinuousSet, DerivativeVar
 from pyomo.dae import *
 import idaes.core.util.scaling as iscale
+
+
+# This loadmat function will get replaced with our standardized data object. 
+# We may decide to keep the new class and functions here or move them to a separate file.
+# 
+# Software design of the new data object. Steps:
+# 1. Look through the modeling code, make a list of the data that is needed to define the experimental data.
+#    - Examples: permeate conductivity vs time, retentate mass vs time, initial feed concentration, membrane area, etc.
+# 2. Design a class that can store all of these data in a standardized way.
+#    - Plotting functions can be methods of this class.
+# 3. Write functions to read data from various file formats and populate instance(s) of this class.
+#    - Why instances (plural)? Because some data files may contain multiple experiments.
+# Note: Steps 1 to 3 will replace loadmat below. Many of these steps above are already done by Keshav's unified code.
+# 4. Modify the functions below (and elsewhere in the codebase) to use this new data class instead of dictionaries.
+#    - We need to replace: data_struc, sim_stru, fit_stru, etc.
+#    - These can be replaced either with new classes or a @dataclass structure (https://docs.python.org/3/library/dataclasses.html)
+
+from dataclasses import dataclass
+
+@dataclass
+class DiafiltrationData:
+    dataset_id: int
+    time_delay: float
+    n_vials: int
+    n_initial_vials: int
+    raw_data: list  # List of dictionaries or a more structured type -- please split into appropriate fields
+    config: dict    # Configuration parameters
+    """Class for storing diafiltration experimental data.
+    
+    NOTE: This is a placeholder, please check.
+    
+    """
+
+@dataclass
+class SimulationResults:
+    """Class for storing diafiltration simulation results."""
+
+@dataclass
+class ParamEstResults:
+    """ 
+    Class for storing parameter estimation results including:
+    - fitted parameters
+    - objective function values
+    - FIM
+    - solver status
+    ...
+    """
+
 
 def loadmat(filename):# for fun!
     '''
