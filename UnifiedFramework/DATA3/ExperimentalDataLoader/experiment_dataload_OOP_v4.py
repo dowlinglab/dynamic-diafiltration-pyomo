@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
 """
 OOP-structured unified data loader for Excel (.xlsx/.xls/.xlsm/.xlsb) and MATLAB (.mat)
 used in diafiltration experiments, with unified plotting that:
