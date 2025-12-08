@@ -30,8 +30,10 @@ from typing import List, Tuple, Optional, Dict, Any, Protocol, runtime_checkable
 # ================================================================
 
 @dataclass
-class PyDataConfig:
-    """Mirror of MATLAB data_stru.data_config."""
+class ExperimentMetadata:
+    """ This contains metadata about the experiment.
+    It mimics the MATLAB data_stru.config. 
+    """
     M_F0: float | None = None
     C_F0: np.ndarray | None = None
     M_O: float | None = None
@@ -52,10 +54,11 @@ class PyDataConfig:
     n_extra: int | None = None
     extras: Dict[str, Any] = field(default_factory=dict)
 
-
 @dataclass
-class PyVial:
-    """Mirror of MATLAB data_stru.data_raw(i)."""
+class VialData:
+    """ This contains experimental data for a single vial.
+    It mimics the MATLAB data_stru.data_raw(i).
+    """
     number: int
     time: np.ndarray
     mass: np.ndarray
@@ -66,19 +69,23 @@ class PyVial:
 
 
 @dataclass
-class PyDataStru:
-    """Unified experiment structure, mirroring MATLAB data_stru."""
+class ExperimentData:
+    """
+    This contains all of the data for an experiment.
+    It mimics the MATLAB data_stru."""
     dataset: float | None
     filename: str | None
     mode: str | None
     conductivity_cF: bool | None
     n_obj: int | None
-    data_config: PyDataConfig
-    data_raw: List[PyVial]
+    data_config: ExperimentMetadata
+    data_raw: List[VialData]
 
     # ------------------------------------------------------------
     # Constructor from .mat (load_data.m output)
     # ------------------------------------------------------------
+    # Q: Why is this a static method?
+    # A: Work around for an error?
     @staticmethod
     def from_mat(path: str):
         mat = sio.loadmat(path, squeeze_me=True, struct_as_record=False)
@@ -103,12 +110,12 @@ class PyDataStru:
                 val = getattr(dc, fn)
                 if isinstance(val, (list, np.ndarray)):
                     val = np.asarray(val).squeeze()
-                if fn in PyDataConfig.__dataclass_fields__:
+                if fn in .__dataclass_fields__:
                     cfg_kwargs[fn] = val
                 else:
                     extras[fn] = val
 
-        data_config = PyDataConfig(**cfg_kwargs, extras=extras)
+        data_config = (**cfg_kwargs, extras=extras)
 
         # ---- data_raw (vials) ----
         dr = getattr(ds, "data_raw", [])
@@ -137,9 +144,9 @@ class PyDataStru:
                     if fn not in ["time", "mass", "cV_avg", "cF_exp", "nr", "number"]:
                         vial_extras[fn] = getattr(v, fn)
 
-            vials.append(PyVial(num, t, m, cV, cF, nr, vial_extras))
+            vials.append(VialData(num, t, m, cV, cF, nr, vial_extras))
 
-        return PyDataStru(dataset, filename, mode, conductivity_cF, n_obj, data_config, vials)
+        return ExperimentData(dataset, filename, mode, conductivity_cF, n_obj, data_config, vials)
 
     # ------------------------------------------------------------
     # Constructor from Excel (robust header detection)
@@ -188,7 +195,7 @@ class PyDataStru:
         cF = df.filter(regex="retent.*cond", case=False)
         cV = df.filter(regex="permeat.*cond", case=False)
 
-        vial = PyVial(
+        vial = VialData(
             number=1,
             time=time,
             mass=mass,
@@ -198,13 +205,13 @@ class PyDataStru:
             extras={}
         )
 
-        return PyDataStru(
+        return ExperimentData(
             dataset=None,
             filename=os.path.basename(path),
             mode=None,
             conductivity_cF=False,
             n_obj=1,
-            data_config=PyDataConfig(),
+            data_config=(),
             data_raw=[vial]
         )
 
@@ -213,6 +220,10 @@ class PyDataStru:
 # SECTION 2 — DataRun (unchanged)
 # ================================================================
 
+# How does this relate to our new plan with two dataclasses (ExperimentData and VialData)?
+
+# This is our first pass at unifying the data structure from >1 month ago. It only grabs minimal data.
+# We will likely want to update the code below to use the more robust ExperimentData and VialData classes above.
 @dataclass
 class DataRun:
     time: np.ndarray
@@ -226,6 +237,8 @@ class DataRun:
     def __post_init__(self):
         n = len(self.time)
 
+        # This looks like a helper function that can be moved
+        # to the global scope in case we want to reuse it elsewhere.
         def pad(x):
             if x is None:
                 return np.full(n, np.nan)
@@ -257,6 +270,7 @@ class DataSource(Protocol):
     def parse(self) -> DataRun: ...
 
 
+# This gets simplified into a function
 class ExcelSource:
     """Original Excel parser used by DataLoader."""
     def __init__(self, path: str, measure_sheet: Optional[str] = None, index_sheet: Optional[str] = None):
