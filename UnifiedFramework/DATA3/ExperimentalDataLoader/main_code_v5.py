@@ -14,7 +14,7 @@ Uses:
     PyDataStru  (new unified constructors)
 """
 
-from experiment_dataload_OOP_v5 import (
+from experiment_dataload_OOP_v7 import (
     DataLoader,
     list_sheets,
     PyDataStru,
@@ -28,7 +28,7 @@ from experiment_dataload_OOP_v5 import (
 excel_path = "/Users/kkasturi/GitHub/dynamic-diafiltration-pyomo/UnifiedFramework/ExperimentalDataFiles/NF270_MC3.xlsx"
 
 # Example MAT experiment file (data_stru)
-mat_path = "/Users/kkasturi/GitHub/dynamic-diafiltration-pyomo/UnifiedFramework/ExperimentalDataFiles/data_stru-dataset270511.121.mat"
+mat_path = "/Users/kkasturi/GitHub/dynamic-diafiltration-pyomo/DATA1_matlab/data_library/data_stru-dataset270511.121.mat"
 
 # ---------------------------------------------------------------------------
 # 1. TEST PyDataStru.from_excel()
@@ -100,8 +100,8 @@ print("MAT windows:", ldr_mat.windows)
 print("MAT number of vials:", len(ldr_mat.times))
 
 # Uncomment if you want plots:
-# ldr_mat.plot_mass(save_prefix="mat_mass", cumulative=False)
-# ldr_mat.plot_conductivity(save_prefix="mat_cond")
+ldr_mat.plot_mass(save_prefix="mat_mass", cumulative=False)
+ldr_mat.plot_conductivity(save_prefix="mat_cond")
 
 # ---------------------------------------------------------------------------
 # Done
