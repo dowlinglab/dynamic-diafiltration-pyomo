@@ -107,6 +107,16 @@ DEBUG = False
 # =============================================================================
 
 def _load_mat_scipy(path: str) -> Dict[str, Any]:
+    # All functions need a Doc String, fill in the template below
+    """
+    Docstring for _load_mat_scipy <-- becomes a sentence that describes the function.
+    
+    Arguments:
+        path: Description (str)
+
+    Returns:
+        Dict[str, Any], describe here
+    """
     if not os.path.exists(path):
         raise FileNotFoundError(f"File not found: {path}")
     if os.path.splitext(path)[1].lower() != ".mat":
